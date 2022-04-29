@@ -18,7 +18,7 @@ public class Maze extends Canvas
     //horizontal and vertical margins
     private int hmargin = 10; //distance horizontally from canvas left border
     private int vmargin = 10; //distance vertically from canvas top border
-    private int cellopening = 10; // Opening in the maze cell
+    private int cellopening = 25; // Opening in the maze cell
     private int cellwidth = 40; // width of mze cell
 
     public Maze(int horizontalsize, int verticalsize) {
