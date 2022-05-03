@@ -13,9 +13,9 @@ public class Main extends Canvas{
         JButton b2=new JButton("Edit Maze");
         JButton b3=new JButton("AutoGenerate Maze");
         //put menu button configs
-        b.setBounds(90,70,140,50);
-        b2.setBounds(90,100,140,50);
-        b3.setBounds(90,130,140,50);
+        b.setBounds(90,70,170,30);
+        b2.setBounds(90,100,170,30);
+        b3.setBounds(90,130,170,30);
         //add buttons to frame
         f.add(b);
         f.add(b2);
