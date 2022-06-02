@@ -206,9 +206,7 @@ public class Maze extends Canvas
                 C.SetCoordinate(C.getx(), C.gety() + 1);
 
             }
-            System.out.println("NextC- "+C.getx()+C.gety());
         }
-        System.out.println("Count ="+count);
         if (count == horizontal_size*vertical_size)
         {
             System.out.println(count+"Unsolvable" + startcellx + startcelly + finalcellx + finalcelly);
