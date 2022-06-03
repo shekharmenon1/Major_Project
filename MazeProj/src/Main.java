@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class Main extends Canvas{
 
     public static void main(String[] args){
-		//setup menu window
+        //setup menu window
         //create menu buttons
         JFrame f      = new JFrame("Menu");
         JFrame frame  = new JFrame();
@@ -111,8 +111,8 @@ public class Main extends Canvas{
                 f.setVisible(false);
                 frame4.setVisible(true);
                 
-                int colNumber  =	Integer.parseInt( number.getText()); 
-                int row1Number  =	Integer.parseInt( number2.getText());
+                int colNumber  =    Integer.parseInt( number.getText()); 
+                int row1Number  =    Integer.parseInt( number2.getText());
 
                 Maze maze = new Maze(colNumber, row1Number);
                 frame4.add(b4);  
