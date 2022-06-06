@@ -192,6 +192,7 @@ public class Main extends Canvas{
         JButton resizegrid = new JButton("Resize Grid");
         JButton cleardesign = new JButton("Clear Design");
         JButton addthemes = new JButton("Add Themes");
+        JButton exit = new JButton("Exit");
         JButton displaysavedmazes = new JButton("Show Saved Mazes");
         buttonspannel.add(savetodb);
         buttonspannel.add(exportmaze);
@@ -201,6 +202,7 @@ public class Main extends Canvas{
         buttonspannel.add(cleardesign);
         buttonspannel.add(addthemes);
         buttonspannel.add(displaysavedmazes);
+        buttonspannel.add(exit);
         List<JTextField> textFields = new ArrayList<JTextField>();
 
         for (int j=0; j<vertical_value; j = j+1) {
@@ -247,6 +249,16 @@ public class Main extends Canvas{
                 else
                     maze.setRouteflag(true);
                 maze.repaint();
+            }
+        });
+        exit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    connection.close();
+                    System.exit(0);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         displaysavedmazes.addActionListener(new ActionListener() {
