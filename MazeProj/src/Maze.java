@@ -289,7 +289,7 @@ public class Maze<Maze_Name> extends Canvas
 
             }
         }
-
+        // Draw the solution line 
         if (routeflag == true) {
             drawroute();
         }
