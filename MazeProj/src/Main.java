@@ -1,21 +1,25 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.table.TableModel;
+import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.Color;
 import java.awt.event.FocusListener;
-
+import java.util.concurrent.Flow;
 
 
 public class Main extends Canvas{
     //connecting to DB
-    Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
-    Maze maze;
+     Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
+     Maze maze;
 
      public Main() throws SQLException {
      }
@@ -74,13 +78,13 @@ public class Main extends Canvas{
         return new java.sql.Date(today.getTime());
     }
 
-    public void SaveMaze(int horizontal_value, int vertical_value, Maze maze) throws SQLException{
+    public void SaveMaze(int horizontal_value, int vertical_value, Maze maze, BufferedImage img) throws SQLException{
 
         final int[] number_of_rows = new int[1];
         //Specifications page
         JFrame Store_Maze = new JFrame("Save Maze");
         Store_Maze.setVisible(true);
-        Store_Maze.setSize(700,100);
+        Store_Maze.setSize(750,100);
         Store_Maze.setLayout(new GridLayout(2, 2));
         //Add User Entry Objects
 
@@ -93,12 +97,26 @@ public class Main extends Canvas{
         JLabel maze_author = new JLabel("Maze Author: ");
         JTextField author = new JTextField(10);
         JButton submitbutton = new JButton("Submit");
+        JButton exportmaze = new JButton("Export Maze");
+        JButton close = new JButton("Close");
+        exportmaze.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String the_name = name.getText();
+                    String the_author = author.getText();
+                    ImageIO.write(img, "png", new File("mazes/"+the_name+"_"+the_author+".png"));
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                }
+                System.out.println("panel saved as image");
+            }
+        });
+
 
         submitbutton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 String the_name = name.getText();
                 String the_author = author.getText();
-                Store_Maze.setVisible(false);
 
                 //Find number of mazes in the database.
                 String Maze_Info = "Select count(*) as number_of_rows From Maze_Master;";
@@ -145,16 +163,21 @@ public class Main extends Canvas{
                     ex.printStackTrace();
                 }
             }
-        });
 
+        });
+        close.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                Store_Maze.setVisible(false);
+            }
+        });
         Maze_Details.add(maze_name);
         Maze_Details.add(name);
         Maze_Details.add(maze_author);
         Maze_Details.add(author);
         Maze_Details.add(submitbutton);
+        Maze_Details.add(exportmaze);
+        Maze_Details.add(close);
         Store_Maze.add(Maze_Details);
-
-        Store_Maze.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
     //MainFrame Draw Random Maze
     public void Mainframe(int horizontal_value, int vertical_value, boolean manualflag){
@@ -172,6 +195,7 @@ public class Main extends Canvas{
         Coordinate StartC = new Coordinate (0,0);
         if (manualflag == false) {
             maze = new Maze(horizontal_value, vertical_value, true);
+
             maze.traverse(StartC);
         }
         else {
@@ -179,6 +203,10 @@ public class Main extends Canvas{
         }
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+        JPanel mazePanel = new JPanel();
+        mazePanel.setLayout(new BoxLayout(mazePanel, BoxLayout.Y_AXIS));
+
         //mainPanel.setBounds(500, 200, 30*horizontalsize, 30*verticalsize);
 
         JPanel panel = new JPanel(new GridLayout(0, horizontal_value));
@@ -186,7 +214,6 @@ public class Main extends Canvas{
 
         JPanel buttonspannel = new JPanel(new GridLayout(3,3));
         JButton savetodb = new JButton("Save To Database");
-        JButton exportmaze = new JButton("Export Maze");
         JButton addlogo = new JButton("Add Logo");
         JButton solve = new JButton("Solve Maze");
         JButton resizegrid = new JButton("Resize Grid");
@@ -195,7 +222,6 @@ public class Main extends Canvas{
         JButton exit = new JButton("Exit");
         JButton displaysavedmazes = new JButton("Show Saved Mazes");
         buttonspannel.add(savetodb);
-        buttonspannel.add(exportmaze);
         buttonspannel.add(addlogo);
         buttonspannel.add(solve);
         buttonspannel.add(resizegrid);
@@ -251,6 +277,7 @@ public class Main extends Canvas{
                 maze.repaint();
             }
         });
+
         exit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -261,10 +288,12 @@ public class Main extends Canvas{
                 }
             }
         });
+
         displaysavedmazes.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    DisplayMazes();
+                    //notsearchinganymazespecific
+                    DisplayMazes("");
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
@@ -272,10 +301,15 @@ public class Main extends Canvas{
         });
         savetodb.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+
+                BufferedImage img = new BufferedImage(maze.getWidth(), maze.getHeight(), BufferedImage.TYPE_INT_RGB);
+                mazePanel.paint(img.getGraphics());
+                maze.paint(img.getGraphics());
                 try {
-                    SaveMaze(horizontal_value, vertical_value, maze);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    SaveMaze(horizontal_value, vertical_value, maze, img);
+
+                } catch (Exception ex) {
+                    System.out.println("panel not saved" + ex.getMessage());
                 }
             }
         });
@@ -287,10 +321,12 @@ public class Main extends Canvas{
         layout.setVgap(20);
         mainPanel.setLayout(layout);
 
-        mainPanel.add(maze);
         mainPanel.add (panel);
         mainPanel.add(buttonspannel);
+        mainPanel.add(mazePanel);
+        mazePanel.add(maze);
         frame.setVisible(true);
+
         //Button to go to specifications page
         resizegrid.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
@@ -301,20 +337,31 @@ public class Main extends Canvas{
         //Make Sure Program Ends when Window Exit Button is Clicked
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-    public int populate_table (String[][] tabledata)
+    public int populate_table (String[][] tabledata, String filtertext)
     {
+
+        String Maze_Info = "Select Maze_ID, Maze_name,  Author_Name From Maze_Master";
+        if (!filtertext.isEmpty()){
+            Maze_Info = Maze_Info.concat(" Where Author_Name LIKE '%");
+            Maze_Info = Maze_Info.concat(filtertext);
+            Maze_Info = Maze_Info.concat("%' OR Maze_name LIKE '%");
+            Maze_Info = Maze_Info.concat(filtertext);
+            Maze_Info = Maze_Info.concat("%'");
+        }
+        Maze_Info = Maze_Info.concat(";");
         int i = 0;
         //Connect to DB
+        System.out.println("Maze_Info = "+Maze_Info);
+
         try {
-            String Maze_Info = "Select Maze_ID, Maze_name,  Author_Name From Maze_Master;";
             PreparedStatement maze_info = connection.prepareStatement(Maze_Info);
             ResultSet Details = maze_info.executeQuery();
 
             while (Details.next()) {
                 String[] tempdata = new String[3];
                 tempdata[0]=  (Details.getString("Maze_ID").toString());
-                tempdata[1] = (Details.getString("Author_Name"));
-                tempdata[2] = (Details.getString("Maze_Name"));
+                tempdata[1] = (Details.getString("Maze_Name"));
+                tempdata[2] = (Details.getString("Author_Name"));
                 tabledata[i] = tempdata;
                 i = i + 1;
             }
@@ -325,14 +372,13 @@ public class Main extends Canvas{
         return i;
     }
 
-    public void DisplayMazes() throws SQLException {
+    public void DisplayMazes(String filtertext) throws SQLException {
         int counter = 100;
         JFrame Stored_Mazes = new JFrame("Stored Mazes");
-        Stored_Mazes.setLayout(new FlowLayout());
-        Stored_Mazes.setSize(500, 500);
-
+        Stored_Mazes.setLayout(new FlowLayout(FlowLayout.LEFT));
+        Stored_Mazes.setSize(500, 550);
         String[][] data = new String[100][3];
-        int count = populate_table(data);
+        int count = populate_table(data, filtertext);
 
         String[][] tabledata = new String[count][3];
         for (int i=0; i<count;i++) {
@@ -343,13 +389,45 @@ public class Main extends Canvas{
         JTable table = new JTable(tabledata, columnNames);
         table.setBounds(30,40,200,300);
 
-        JPanel selectpanel = new JPanel();
+       /* Creating a Filter Panel to keep the text and filter buttone */
+
+        JPanel filterpanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel filterlabel = new JLabel("Search by Maze name or Maze Author :");
+        JTextField search = new JTextField(10);
+        search.setText(filtertext);
+        JButton filter = new JButton("Search");
+        filterpanel.add(filterlabel);
+        filterpanel.add(search);
+        filterpanel.add(filter);
+
+
+        JPanel selectpanel = new JPanel(new FlowLayout());
         JButton select = new JButton("Select");
         selectpanel.add(select);
 
         //Create a panel and add the table to the panel and panel to the frame
         JScrollPane panel = new JScrollPane(table);
-        String Maze_Info = "Select Maze_ID, Maze_Name,Author_Name, Create_Date, Last_Modified_Date, Horizontal_Size, Vertical_Size,StartCellX,StartCellY,FinalCellX,FinalCellY From Maze_Master;";
+
+        filter.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    DisplayMazes(search.getText());
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        String Maze_Info = "Select Maze_ID, Maze_Name,Author_Name, Create_Date, Last_Modified_Date, Horizontal_Size, Vertical_Size,StartCellX,StartCellY,FinalCellX,FinalCellY From Maze_Master ";
+        if (!filtertext.isEmpty()){
+            System.out.println("Inside where");
+            Maze_Info = Maze_Info.concat(" Where Author_Name LIKE '%");
+            Maze_Info = Maze_Info.concat(filtertext);
+            Maze_Info = Maze_Info.concat("%' OR Maze_name LIKE '%");
+            Maze_Info = Maze_Info.concat(filtertext);
+            Maze_Info = Maze_Info.concat("%'");
+        }
+        Maze_Info = Maze_Info.concat(";");
+
         PreparedStatement maze_info = connection.prepareStatement(Maze_Info);
         ResultSet InfoDetails = maze_info.executeQuery();
         select.addActionListener(new ActionListener(){
@@ -367,9 +445,8 @@ public class Main extends Canvas{
 
                     if (selection == n){
                         try {
-                            System.out.println ("n="+n);
                             maze = new Maze (InfoDetails.getInt("Horizontal_Size"),InfoDetails.getInt("Vertical_Size"),true);
-                            maze.Maze_ID = selection;
+                            maze.Maze_ID = InfoDetails.getInt("Maze_ID");
                             maze.Maze_Name = InfoDetails.getString("Maze_Name");
                             maze.Author_Name = InfoDetails.getString("Author_Name");
                             maze.Create_Date = InfoDetails.getDate("Create_Date");
@@ -381,15 +458,13 @@ public class Main extends Canvas{
                             maze.finalcellx = InfoDetails.getInt("FinalCellX");
                             maze.finalcelly = InfoDetails.getInt("FinalCellY");
 
-                            String Maze_Details = "Select Maze_ID, Coord_Index,Direction From Maze_Detail where Maze_ID ="+selection+";";
+                            String Maze_Details = "Select Maze_ID, Coord_Index,Direction From Maze_Detail where Maze_ID ="+maze.Maze_ID+";";
                             PreparedStatement maze_details = connection.prepareStatement(Maze_Details);
                             ResultSet Details = maze_details.executeQuery();
                             while (Details.next())
                             {
-                                System.out.println("Index ="+Details.getInt("Coord_Index"));
                                 maze.setCoordinateDirection(Details.getInt("Coord_Index"), Details.getString("Direction"));
                             }
-                            System.out.println("before repaint");
                             Mainframe(maze.horizontal_size, maze.vertical_size,true);
                             break;
                         }
@@ -401,6 +476,7 @@ public class Main extends Canvas{
                 }
             }
         });
+        Stored_Mazes.add(filterpanel);
         Stored_Mazes.add(panel);
         Stored_Mazes.add(selectpanel);
         Stored_Mazes.setVisible(true);
