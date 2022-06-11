@@ -288,7 +288,11 @@ public class Main extends Canvas{
                 }
             }
         });
-
+        addthemes.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                AddThemes();
+            }
+        });
         displaysavedmazes.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -481,7 +485,31 @@ public class Main extends Canvas{
         Stored_Mazes.add(selectpanel);
         Stored_Mazes.setVisible(true);
     }
+    public void AddThemes(){
+        JFrame Themes = new JFrame();
+        Themes.setSize(200, 200);
+        Themes.setVisible(true);
+        JPanel ThemesList = new JPanel();
+        JButton dogtheme = new JButton("Dog");
+        dogtheme.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                Image img;
+                File input = new File("themes/dog.jpeg");
+                try {
+                    img = ImageIO.read(input);
+                    Themes.setVisible(false);
 
-
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        JButton spidermantheme = new JButton("SpiderMan");
+        JButton SchoolTheme = new JButton("School");
+        ThemesList.add(dogtheme);
+        ThemesList.add(spidermantheme);
+        ThemesList.add(SchoolTheme);
+        Themes.add(ThemesList);
+    }
 
 }
