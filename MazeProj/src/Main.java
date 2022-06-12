@@ -18,21 +18,21 @@ import java.util.concurrent.Flow;
 
 public class Main extends Canvas{
     //connecting to DB
-     Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
-     Maze maze;
+    Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
+    Maze maze;
 
-     public Main() throws SQLException {
-     }
+    public Main() throws SQLException {
+    }
 
-     public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws SQLException {
 
         Main newObject;
         newObject = new Main();
 
         newObject.Mainframe(10, 10,false);
-     }
+    }
 
-     private void ResizeGUI(int hor, int ver, JFrame MainFrame){
+    private void ResizeGUI(int hor, int ver, JFrame MainFrame){
         //Specifications page
         JFrame Specifications = new JFrame("Resize Maze");
         Specifications.setVisible(true);
@@ -393,7 +393,7 @@ public class Main extends Canvas{
         JTable table = new JTable(tabledata, columnNames);
         table.setBounds(30,40,200,300);
 
-       /* Creating a Filter Panel to keep the text and filter buttone */
+        /* Creating a Filter Panel to keep the text and filter buttone */
 
         JPanel filterpanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel filterlabel = new JLabel("Search by Maze name or Maze Author :");
@@ -511,5 +511,21 @@ public class Main extends Canvas{
         ThemesList.add(SchoolTheme);
         Themes.add(ThemesList);
     }
+
+    public void AddTheme(int x, int y, String themetype)
+    {
+        JFileChooser FileChoose = new JFileChooser();
+        int result = FileChoose.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION)
+        {
+            File selectedFile = FileChoose.getSelectedFile();
+            try {
+                image = ImageIO.read(selectedFile);
+                maze.showImage(image, x, y,themetype);
+                maze.repaint();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
 }
