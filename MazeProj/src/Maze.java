@@ -248,7 +248,6 @@ public class Maze<Maze_Name> extends Canvas
     public void paint(Graphics g){
         gr = g;
 
-
         for (int i = 0; i< horizontal_size*vertical_size;i++)
             System.out.print (CoordinateDirection.get(i));
 
@@ -263,20 +262,21 @@ public class Maze<Maze_Name> extends Canvas
             g.setColor(Color.black);
             g.drawLine(hmargin, j * cellwidth + vmargin, (horizontal_size-1) * cellwidth + hmargin, (j) * cellwidth + vmargin);
         }
-
+        System.out.println ("Just before Paint");
         //draw the cell openings in the maze
         for (int i=0; i < horizontal_size-1;i=i+1)
         {
             for (int j=0;j<vertical_size-1;j=j+1)
             {
                 //if 2 consecutive points are true draw from one to other with 20 for pixel size
-
-                if (i == logox && j == logoy)
+                System.out.println(i+":"+j+":"+themestartx+":"+themestarty+":"+logox+":"+logoy);
+                if (i == logox && j == logoy && logoimage != null)
                 {
                     g.drawImage(logoimage, (i)*cellwidth+hmargin, j*cellwidth+vmargin,40,40,null);
                 }
                 else if (i == themestartx && j == themestarty)
                 {
+                    System.out.println("Inside paint start");
                     g.drawImage(themestartimage, (i)*cellwidth+hmargin, j*cellwidth+vmargin,40,40,null);
                 }
                 else if (i == themeendx && j == themeendy)
