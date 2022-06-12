@@ -17,6 +17,7 @@ import java.awt.event.FocusListener;
 
 
 public class Main extends Canvas{
+
     //connecting to DB
      Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
      Maze maze;
@@ -29,7 +30,6 @@ public class Main extends Canvas{
 
         Main newObject;
         newObject = new Main();
-
         newObject.Mainframe(10, 10,false);
      }
 
@@ -59,6 +59,7 @@ public class Main extends Canvas{
                 int newvertical = Integer.parseInt(col.getText());
                 Specifications.setVisible(false);
                 System.out.println("hor: "+newhorizontal+", ver: "+ newvertical);
+                //frame.setVisible(false);
                 Mainframe(newhorizontal, newvertical,false);
             }
         });
@@ -257,12 +258,12 @@ public class Main extends Canvas{
         // Sets up the drawing canvas
         //Create new Window
         //Set Window Size
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame("MAZE DESIGNER");
         frame.setVisible(true);
-        frame.setSize(1000, 1000);
+        frame.setSize(800, 1000);
         Container cpane;
         cpane = frame.getContentPane();
-        cpane.setLayout(new GridLayout());
+        cpane.setLayout(new GridLayout(1,1));
 
         //Start traversing from (0,0)
         Coordinate StartC = new Coordinate (0,0);
@@ -283,21 +284,26 @@ public class Main extends Canvas{
         //mainPanel.setBounds(500, 200, 30*horizontalsize, 30*verticalsize);
 
         JPanel panel = new JPanel(new GridLayout(0, horizontal_value));
-        panel.setBackground(Color.blue);
+        panel.setBackground(Color.darkGray);
 
-        JPanel buttonspannel = new JPanel(new GridLayout(3,3));
-        JButton savetodb = new JButton("Save / Export");
-        JButton addlogo = new JButton("Add Logo & Theme Images");
-        JButton solve = new JButton("Solve Maze");
-        JButton resizegrid = new JButton("Resize Grid");
-        JButton exit = new JButton("Exit");
+        JPanel buttonspannel = new JPanel(new GridLayout(8,8));
+
+        JButton autogenerate = new JButton("Auto Generate Maze");
+        JButton resizegrid = new JButton("Resize Grid & Auto Generate");
+        JButton solve = new JButton("Solve Maze Toggle");
         JButton displaysavedmazes = new JButton("Show Saved Mazes");
-        buttonspannel.add(savetodb);
-        buttonspannel.add(addlogo);
-        buttonspannel.add(solve);
+        JButton addlogo = new JButton("Add Logo & Theme Images");
+        JButton savetodb = new JButton("Save / Export");
+        JButton exit = new JButton("Exit");
+
+        buttonspannel.add(autogenerate);
         buttonspannel.add(resizegrid);
+        buttonspannel.add(solve);
         buttonspannel.add(displaysavedmazes);
+        buttonspannel.add(addlogo);
+        buttonspannel.add(savetodb);
         buttonspannel.add(exit);
+
         List<JTextField> textFields = new ArrayList<JTextField>();
 
         for (int j=0; j<vertical_value; j = j+1) {
@@ -347,6 +353,15 @@ public class Main extends Canvas{
             }
         });
 
+        autogenerate.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                frame.setVisible(false);
+                Mainframe(10, 10,false);
+                maze.repaint();
+            }
+        });
+
+
         exit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -388,15 +403,15 @@ public class Main extends Canvas{
         });
 
         cpane.add(mainPanel);
-
+        buttonspannel.setSize(10,10);
+        cpane.add(buttonspannel);
         GridLayout layout = new GridLayout(2, 2);
         layout.setHgap(20);
         layout.setVgap(20);
         mainPanel.setLayout(layout);
-
         mainPanel.add (panel);
-        mainPanel.add(buttonspannel);
         mainPanel.add(mazePanel);
+
         mazePanel.add(maze);
         frame.setVisible(true);
 
@@ -404,6 +419,7 @@ public class Main extends Canvas{
         resizegrid.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 ResizeGUI(horizontal_value, vertical_value, frame);
+                frame.setVisible(false);
             }
         });
         //Make Sure Program Ends when Window Exit Button is Clicked
@@ -476,6 +492,17 @@ public class Main extends Canvas{
         JPanel selectpanel = new JPanel(new FlowLayout());
         JButton select = new JButton("Select");
         selectpanel.add(select);
+        JButton close = new JButton("Close");
+        selectpanel.add(close);
+        close.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                   Stored_Mazes.setVisible(false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         //Create a panel and add the table to the panel and panel to the frame
         JScrollPane panel = new JScrollPane(table);
@@ -570,6 +597,7 @@ public class Main extends Canvas{
                             {
                                 maze.setCoordinateDirection(Details.getInt("Coord_Index"), Details.getString("Direction"));
                             }
+                            //frame.setVisible(false);
                             Mainframe(maze.horizontal_size, maze.vertical_size,true);
                             break;
                         }
@@ -588,8 +616,8 @@ public class Main extends Canvas{
     }
     public void AddImages () {
          JFrame imageFrame = new JFrame ();
-         imageFrame.setSize(400, 200);
-         JPanel imagePanel = new JPanel (new GridLayout(4,1));
+         imageFrame.setSize(500, 200);
+         JPanel imagePanel = new JPanel (new GridLayout(2,2));
          JButton addLogobutton = new JButton ("Add Logo");
          JButton themestartbutton = new JButton ("Add Theme Start Image");
          JButton themeendbutton = new JButton ("Add Theme End Image");
@@ -651,7 +679,7 @@ public class Main extends Canvas{
             }
         }
         JFrame Themes = new JFrame();
-        Themes.setSize(400, 100);
+        Themes.setSize(500, 100);
         Themes.setVisible(true);
         JPanel ThemesPanel = new JPanel(new FlowLayout());
         Themes.add(ThemesPanel);
@@ -659,10 +687,23 @@ public class Main extends Canvas{
         JTextField row = new JTextField(2);
         JTextField col = new JTextField(2);
         JButton submit = new JButton("Add Image");
+        JButton close = new JButton("Close");
         ThemesPanel.add(label);
         ThemesPanel.add(row);
         ThemesPanel.add(col);
         ThemesPanel.add(submit);
+        ThemesPanel.add(close);
+        close.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Themes.setVisible(false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+
         submit.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 try {
