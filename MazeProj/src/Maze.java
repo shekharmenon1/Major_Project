@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
 import java.util.List;
@@ -14,6 +15,8 @@ public class Maze<Maze_Name> extends Canvas
     private boolean [][] CoordinatesVisited;
     boolean is_manual = false;
     private List <String> CoordinateDirection = new ArrayList<String>();
+    public BufferedImage logoimage, themestartimage, themeendimage;
+    public int logox,logoy, themestartx,themestarty,themeendx,themeendy;
     public int horizontal_size;
     public int vertical_size;
     public int Maze_ID;
@@ -223,11 +226,28 @@ public class Maze<Maze_Name> extends Canvas
         }
 
     }
+    public void showImage (BufferedImage image, int x, int y, String type)
+    {
+        if (type == "LogoImage") {
+            logoimage = image;
+            logox = x;
+            logoy = y;
+        }
+        else if (type == "ThemeStartImage") {
+            themestartimage = image;
+            themestartx = x;
+            themestarty = y;
+        }
+        else {
+            themeendimage = image;
+            themeendx = x;
+            themeendy = y;
+        }
+    }
 
     public void paint(Graphics g){
         gr = g;
 
-        System.out.println("Inside Paint");
 
         for (int i = 0; i< horizontal_size*vertical_size;i++)
             System.out.print (CoordinateDirection.get(i));
@@ -250,6 +270,21 @@ public class Maze<Maze_Name> extends Canvas
             for (int j=0;j<vertical_size-1;j=j+1)
             {
                 //if 2 consecutive points are true draw from one to other with 20 for pixel size
+
+                if (i == logox && j == logoy)
+                {
+                    g.drawImage(logoimage, (i)*cellwidth+hmargin, j*cellwidth+vmargin,40,40,null);
+                }
+                else if (i == themestartx && j == themestarty)
+                {
+                    g.drawImage(themestartimage, (i)*cellwidth+hmargin, j*cellwidth+vmargin,40,40,null);
+                }
+                else if (i == themeendx && j == themeendy)
+                {
+                    g.drawImage(themeendimage, (i)*cellwidth+hmargin, j*cellwidth+vmargin,40,40,null);
+                }
+
+
 
                 if (CoordinateDirection.get(i+j*horizontal_size) == null) continue;
 
@@ -289,7 +324,7 @@ public class Maze<Maze_Name> extends Canvas
 
             }
         }
-        // Draw the solution line 
+
         if (routeflag == true) {
             drawroute();
         }
