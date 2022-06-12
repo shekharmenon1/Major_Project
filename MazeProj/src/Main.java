@@ -1,11 +1,12 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
@@ -13,26 +14,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.awt.Color;
 import java.awt.event.FocusListener;
-import java.util.concurrent.Flow;
 
 
 public class Main extends Canvas{
     //connecting to DB
-    Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
-    Maze maze;
+     Connection connection = DriverManager.getConnection("jdbc:sqlite:db/database.db");
+     Maze maze;
+     BufferedImage image;
 
-    public Main() throws SQLException {
-    }
+     public Main() throws SQLException {
+     }
 
-    public static void main(String[] args) throws SQLException {
+     public static void main(String[] args) throws SQLException {
 
         Main newObject;
         newObject = new Main();
 
         newObject.Mainframe(10, 10,false);
-    }
+     }
 
-    private void ResizeGUI(int hor, int ver, JFrame MainFrame){
+     private void ResizeGUI(int hor, int ver, JFrame MainFrame){
         //Specifications page
         JFrame Specifications = new JFrame("Resize Maze");
         Specifications.setVisible(true);
@@ -81,6 +82,7 @@ public class Main extends Canvas{
     public void SaveMaze(int horizontal_value, int vertical_value, Maze maze, BufferedImage img) throws SQLException{
 
         final int[] number_of_rows = new int[1];
+        final int[] numimages = new int[1];
         //Specifications page
         JFrame Store_Maze = new JFrame("Save Maze");
         Store_Maze.setVisible(true);
@@ -96,6 +98,7 @@ public class Main extends Canvas{
         JTextField name = new JTextField(10);
         JLabel maze_author = new JLabel("Maze Author: ");
         JTextField author = new JTextField(10);
+
         JButton submitbutton = new JButton("Submit");
         JButton exportmaze = new JButton("Export Maze");
         JButton close = new JButton("Close");
@@ -120,39 +123,109 @@ public class Main extends Canvas{
 
                 //Find number of mazes in the database.
                 String Maze_Info = "Select count(*) as number_of_rows From Maze_Master;";
+                String Images = "Select count(*) as number_of_Images From Maze_Images where Maze_ID = "+maze.Maze_ID+";";
+                PreparedStatement images = null;
+                try {
+                    images = connection.prepareStatement(Images);
+                    ResultSet imgdetails = images.executeQuery();
+                    numimages[0] = imgdetails.getInt("number_of_Images");
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+
+
                 PreparedStatement maze_info = null;
                 try {
                     maze_info = connection.prepareStatement(Maze_Info);
                     ResultSet Details = maze_info.executeQuery();
                     Details.next();
                     number_of_rows[0] = Details.getInt("number_of_rows");
-                    System.out.println("Size ="+ number_of_rows[0]);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
 
+                    //do maze adding
+                    String MAZE_MASTER = "INSERT into Maze_Master (Maze_ID, Maze_Name, Author_Name, Create_Date, Last_Modified_Date, Horizontal_Size, Vertical_Size, StartCellX,StartCellY,FinalCellX,FinalCellY) VALUES (?,?,?,?,?, ?, ?, ?, ?, ?, ?);";
+                    String MAZE_DETAIL = "INSERT into Maze_Detail (Maze_ID, Coord_Index, Direction) VALUES (?, ?, ?);";
 
-                //do maze adding
-                String MAZE_MASTER = "INSERT into Maze_Master (Maze_ID, Maze_Name, Author_Name, Create_Date, Last_Modified_Date, Horizontal_Size, Vertical_Size, StartCellX,StartCellY,FinalCellX,FinalCellY) VALUES (?,?,?,?,?, ?, ?, ?, ?, ?, ?);";
-                String MAZE_DETAIL = "INSERT into Maze_Detail (Maze_ID, Coord_Index, Direction) VALUES (?, ?, ?);";
-                try {
+                    if (maze.logoimage != null) {
+                        byte[] imageInByte = new byte[0];
+                        try {
+                            String MAZE_IMAGES = "INSERT into Maze_Images (Maze_ID,Image_ID, X_Coord, Y_Coord, Image        ) VALUES (?, ?,?,?,?);";
+                            PreparedStatement maze_images = connection.prepareStatement(MAZE_IMAGES);
 
+                            maze_images.setInt(1, number_of_rows[0]);
+                            maze_images.setInt(2, numimages[0]);
+                            maze_images.setInt(3, maze.logox);
+                            maze_images.setInt(4, maze.logoy);
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(maze.logoimage, "jpg", baos);
+                            baos.flush();
+                            imageInByte = baos.toByteArray();
+                            maze_images.setBytes(5, imageInByte);
+                            maze_images.execute();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                    if (maze.themestartimage != null) {
+                        byte[] imageInByte = new byte[0];
+                        try {
+                            String MAZE_IMAGES = "INSERT into Maze_Images (Maze_ID,Image_ID, X_Coord, Y_Coord, Image        ) VALUES (?, ?,?,?,?);";
+                            PreparedStatement maze_images = connection.prepareStatement(MAZE_IMAGES);
+
+                            maze_images.setInt(1, number_of_rows[0]);
+                            maze_images.setInt(2, numimages[0]+1);
+                            maze_images.setInt(3, maze.themestartx);
+                            maze_images.setInt(4, maze.themestarty);
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(maze.themestartimage, "jpg", baos);
+                            baos.flush();
+                            imageInByte = baos.toByteArray();
+                            maze_images.setBytes(5, imageInByte);
+                            maze_images.execute();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                    if (maze.themeendimage != null) {
+                        byte[] imageInByte = new byte[0];
+                        try {
+                            String MAZE_IMAGES = "INSERT into Maze_Images (Maze_ID,Image_ID, X_Coord, Y_Coord, Image        ) VALUES (?, ?,?,?,?);";
+                            PreparedStatement maze_images = connection.prepareStatement(MAZE_IMAGES);
+
+                            maze_images.setInt(1, number_of_rows[0]);
+                            maze_images.setInt(2, numimages[0]+2);
+                            maze_images.setInt(3, maze.themeendx);
+                            maze_images.setInt(4, maze.themeendy);
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(maze.themeendimage, "jpg", baos);
+                            baos.flush();
+                            imageInByte = baos.toByteArray();
+                            maze_images.setBytes(5, imageInByte);
+                            maze_images.execute();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
                     PreparedStatement maze_master = connection.prepareStatement(MAZE_MASTER);
                     maze_master.setInt(1, number_of_rows[0]);
                     maze_master.setString(2, the_name);
                     maze_master.setString(3, the_author);
-                    maze_master.setDate(4,getCurrentDate());
-                    maze_master.setDate(5,getCurrentDate());
+                    maze_master.setDate(4, getCurrentDate());
+                    maze_master.setDate(5, getCurrentDate());
                     maze_master.setInt(6, maze.horizontal_size);
                     maze_master.setInt(7, maze.vertical_size);
-                    maze_master.setInt(8,maze.startcellx);
-                    maze_master.setInt(9,maze.startcelly);
-                    maze_master.setInt(10,maze.finalcellx);
-                    maze_master.setInt(11,maze.finalcelly);
+                    maze_master.setInt(8, maze.startcellx);
+                    maze_master.setInt(9, maze.startcelly);
+                    maze_master.setInt(10, maze.finalcellx);
+                    maze_master.setInt(11, maze.finalcelly);
                     maze_master.execute();
 
-                    for (int i = 0;i<horizontal_value*vertical_value;i=i+1)
-                    {
+
+                    for (int i = 0; i < horizontal_value * vertical_value; i = i + 1) {
                         PreparedStatement maze_detail = connection.prepareStatement(MAZE_DETAIL);
                         maze_detail.setInt(1, number_of_rows[0]);
                         maze_detail.setInt(2, i);
@@ -213,20 +286,16 @@ public class Main extends Canvas{
         panel.setBackground(Color.blue);
 
         JPanel buttonspannel = new JPanel(new GridLayout(3,3));
-        JButton savetodb = new JButton("Save To Database");
-        JButton addlogo = new JButton("Add Logo");
+        JButton savetodb = new JButton("Save / Export");
+        JButton addlogo = new JButton("Add Logo & Theme Images");
         JButton solve = new JButton("Solve Maze");
         JButton resizegrid = new JButton("Resize Grid");
-        JButton cleardesign = new JButton("Clear Design");
-        JButton addthemes = new JButton("Add Themes");
         JButton exit = new JButton("Exit");
         JButton displaysavedmazes = new JButton("Show Saved Mazes");
         buttonspannel.add(savetodb);
         buttonspannel.add(addlogo);
         buttonspannel.add(solve);
         buttonspannel.add(resizegrid);
-        buttonspannel.add(cleardesign);
-        buttonspannel.add(addthemes);
         buttonspannel.add(displaysavedmazes);
         buttonspannel.add(exit);
         List<JTextField> textFields = new ArrayList<JTextField>();
@@ -288,9 +357,9 @@ public class Main extends Canvas{
                 }
             }
         });
-        addthemes.addActionListener(new ActionListener() {
+        addlogo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddThemes();
+                AddImages();
             }
         });
         displaysavedmazes.addActionListener(new ActionListener() {
@@ -334,7 +403,6 @@ public class Main extends Canvas{
         //Button to go to specifications page
         resizegrid.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                frame.setVisible(false);
                 ResizeGUI(horizontal_value, vertical_value, frame);
             }
         });
@@ -393,7 +461,7 @@ public class Main extends Canvas{
         JTable table = new JTable(tabledata, columnNames);
         table.setBounds(30,40,200,300);
 
-        /* Creating a Filter Panel to keep the text and filter buttone */
+       /* Creating a Filter Panel to keep the text and filter buttone */
 
         JPanel filterpanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel filterlabel = new JLabel("Search by Maze name or Maze Author :");
@@ -416,7 +484,7 @@ public class Main extends Canvas{
             public void actionPerformed(ActionEvent e) {
                 try {
                     DisplayMazes(search.getText());
-                } catch (SQLException ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
@@ -462,6 +530,39 @@ public class Main extends Canvas{
                             maze.finalcellx = InfoDetails.getInt("FinalCellX");
                             maze.finalcelly = InfoDetails.getInt("FinalCellY");
 
+                            String Maze_Images = "Select Maze_ID, Image_ID, X_Coord, Y_Coord, Image from Maze_Images where Maze_ID = "+maze.Maze_ID+";";
+                            PreparedStatement maze_images = connection.prepareStatement(Maze_Images);
+                            ResultSet ImageDetails = maze_images.executeQuery();
+
+                            while (ImageDetails.next()) {
+                                try {
+                                    byte[] imageInBytes = new byte[0];
+                                    imageInBytes = ImageDetails.getBytes("Image");
+                                    ByteArrayInputStream bais = new ByteArrayInputStream(imageInBytes);
+                                    int image_ID = ImageDetails.getInt("Image_ID");
+                                    if (image_ID % 3 == 0) {
+                                        maze.logoimage = ImageIO.read(bais);
+                                        maze.logox = ImageDetails.getInt("X_Coord");
+                                        maze.logoy = ImageDetails.getInt("Y_Coord");
+                                    }
+                                    else if (image_ID % 3 == 1)
+                                    {
+                                        maze.themestartimage = ImageIO.read(bais);
+                                        maze.themestartx = ImageDetails.getInt("X_Coord");
+                                        maze.themestartx = ImageDetails.getInt("Y_Coord");
+                                    }
+                                    else
+                                    {
+                                        maze.themeendimage = ImageIO.read(bais);
+                                        maze.themeendx = ImageDetails.getInt("X_Coord");
+                                        maze.themeendy = ImageDetails.getInt("Y_Coord");
+
+                                    }
+
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
                             String Maze_Details = "Select Maze_ID, Coord_Index,Direction From Maze_Detail where Maze_ID ="+maze.Maze_ID+";";
                             PreparedStatement maze_details = connection.prepareStatement(Maze_Details);
                             ResultSet Details = maze_details.executeQuery();
@@ -485,33 +586,96 @@ public class Main extends Canvas{
         Stored_Mazes.add(selectpanel);
         Stored_Mazes.setVisible(true);
     }
-    public void AddThemes(){
-        JFrame Themes = new JFrame();
-        Themes.setSize(200, 200);
-        Themes.setVisible(true);
-        JPanel ThemesList = new JPanel();
-        JButton dogtheme = new JButton("Dog");
-        dogtheme.addActionListener(new ActionListener(){
+    public void AddImages () {
+         JFrame imageFrame = new JFrame ();
+         imageFrame.setSize(400, 200);
+         JPanel imagePanel = new JPanel (new GridLayout(4,1));
+         JButton addLogobutton = new JButton ("Add Logo");
+         JButton themestartbutton = new JButton ("Add Theme Start Image");
+         JButton themeendbutton = new JButton ("Add Theme End Image");
+         JButton closebutton = new JButton ("Close");
+         imageFrame.setVisible(true);
+         imageFrame.add(imagePanel);
+         imagePanel.add (addLogobutton);
+         addLogobutton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                Image img;
-                File input = new File("themes/dog.jpeg");
                 try {
-                    img = ImageIO.read(input);
-                    Themes.setVisible(false);
-
-                } catch (IOException ex) {
+                    AddLogo();
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         });
-        JButton spidermantheme = new JButton("SpiderMan");
-        JButton SchoolTheme = new JButton("School");
-        ThemesList.add(dogtheme);
-        ThemesList.add(spidermantheme);
-        ThemesList.add(SchoolTheme);
-        Themes.add(ThemesList);
+        closebutton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    imageFrame.setVisible(false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        themestartbutton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    AddTheme(maze.startcellx, maze.startcelly, "ThemeStartImage");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        themeendbutton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    AddTheme(maze.finalcellx, maze.finalcelly, "ThemeEndImage");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+         imagePanel.add (themestartbutton);
+         imagePanel.add (themeendbutton);
+         imagePanel.add (closebutton);
     }
+    public void AddLogo(){
+        JFileChooser FileChoose = new JFileChooser();
+        int result = FileChoose.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION)
+        {
+            File selectedFile = FileChoose.getSelectedFile();
 
+            try {
+                image = ImageIO.read(selectedFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        JFrame Themes = new JFrame();
+        Themes.setSize(400, 100);
+        Themes.setVisible(true);
+        JPanel ThemesPanel = new JPanel(new FlowLayout());
+        Themes.add(ThemesPanel);
+        JLabel label = new JLabel ("Enter Image Coordinates :");
+        JTextField row = new JTextField(2);
+        JTextField col = new JTextField(2);
+        JButton submit = new JButton("Add Image");
+        ThemesPanel.add(label);
+        ThemesPanel.add(row);
+        ThemesPanel.add(col);
+        ThemesPanel.add(submit);
+        submit.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    maze.showImage(image, Integer.parseInt(row.getText().toString()),Integer.parseInt(col.getText().toString()),"LogoImage");
+                    maze.repaint();
+                    Themes.setVisible(false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+    }
     public void AddTheme(int x, int y, String themetype)
     {
         JFileChooser FileChoose = new JFileChooser();
@@ -528,4 +692,5 @@ public class Main extends Canvas{
             }
         }
 
+    }
 }
