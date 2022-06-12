@@ -1,0 +1,20 @@
+<project name="MazeProject">
+    <path id="my.classpath">
+        <fileset dir="db">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="Compile">
+        <mkdir dir="target"/>
+        <javac srcdir="." destdir="./target" includeantruntime="false" >
+            <classpath refid="my.classpath"/>
+        </javac>
+
+    </target>
+
+    <target name="jar" depends="Compile">
+        <mkdir dir="artefacts"/>
+        <jar jarfile="artefacts/MazeProject.jar" basedir="target" manifest="MazeManifest.txt"/>
+    </target>
+</project>
